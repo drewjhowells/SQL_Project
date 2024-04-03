@@ -345,3 +345,98 @@ VALUES
      (SELECT section_id FROM section s INNER JOIN course c ON s.course_id = c.course_id INNER JOIN term t ON s.term_id = t.term_id WHERE CONCAT(term_name, ' ', term_year) = 'Winter 2025' AND CONCAT(course_code, ' ', course_num) = 'CSE 251' AND section_number = 2),
      (SELECT role_id FROM role WHERE person_type = 'Student'));
 
+-- Select Statments
+-- 1
+SELECT person_fname, person_lname, DATE_FORMAT(dob, '%M %d, %Y') AS 'November Birthdays'
+FROM person
+WHERE MONTH(dob) = 11;
+
+-- 2
+SELECT person_lname, person_fname, dob, FLOOR((DATEDIFF("2023-09-11", dob)/352)) AS 'Years', ROUND((DATEDIFF("2023-09-11", dob) % 352)) AS 'Days', CONCAT(ROUND((DATEDIFF("2023-09-11", dob)/352)), ' - Yrs, ', ROUND((DATEDIFF("2023-09-11", dob) % 352)), ' - Days') AS 'Years and Days'
+FROM person
+WHERE dob
+ORDER BY dob;
+
+-- 3
+SELECT person_fname, person_lname, person_type
+FROM person p
+JOIN enrollment e ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+WHERE c.course_name = 'Parallelism and Concurrency'
+ORDER BY person_type;
+
+-- 4
+SELECT person_fname, person_lname, person_type, course_name
+FROM person p
+JOIN enrollment e ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+WHERE person_type = 'TA';
+
+-- 5
+SELECT person_fname, person_lname, term_name
+FROM person p
+JOIN enrollment e ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+WHERE course_name = 'Musicianship' AND person_type = 'Student'
+ORDER BY person_lname;
+
+-- 6
+SELECT course_code, course_num, course_name, section_number, term_name
+FROM enrollment e
+JOIN person p ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+WHERE person_fname = 'Brady';
+
+-- 7
+SELECT term_name, term_year, COUNT(DISTINCT e.person_id) AS 'Enrollment'
+FROM enrollment e
+JOIN person p ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+GROUP BY term_name, term_year;
+
+-- 8
+SELECT department_name, COUNT(DISTINCT c.course_id) AS 'Courses'
+FROM department dep
+JOIN degree deg ON dep.department_id = deg.department_id
+JOIN course c ON c.degree_id = deg.degree_id
+GROUP BY department_name;
+
+-- 9
+SELECT person_fname, person_lname, SUM(section_capacity) AS 'Teaching Capacity'
+FROM person p
+JOIN enrollment e ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+WHERE person_type = 'Teacher' AND term_name = 'Fall'
+GROUP BY person_fname, person_lname
+ORDER BY SUM(section_capacity);
+
+-- 10
+SELECT person_lname, person_fname, SUM(course_credit) AS 'Credits'
+FROM person p
+JOIN enrollment e ON p.person_id = e.person_id
+JOIN role r ON r.role_id = e.role_id
+JOIN section s ON e.section_id = s.section_id
+JOIN course c ON s.course_id = c.course_id
+JOIN term t ON s.term_id = t.term_id
+WHERE person_type = 'Student' AND term_name = 'Winter'
+GROUP BY person_fname, person_lname
+HAVING SUM(course_credit) <= 3
+ORDER BY SUM(course_credit) DESC;
